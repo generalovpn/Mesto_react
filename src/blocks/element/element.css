@@ -1,0 +1,11 @@
+.element {
+  width: 100%;
+  max-width: 282px;
+  background-color: #FFFFFF;
+  color: #000000;
+  margin: 0 auto;
+  padding: 0;
+  border-radius: 10px;
+  display: grid;
+  position: relative;
+}
