@@ -1,102 +1,75 @@
 class Api {
-	constructor({baseUrl, headers}) {
-		this._url = baseUrl;
-		this._headers = headers;
-	}
-	
-	  /**Проверить на ошибки */
-	_checkResponse(res) {
-		if (res.ok) {
-			return res.json();
-		}
-		return Promise.reject(`Что-то пошло не так! Ошибка: ${res.status}`);
-	};
-	
-	  /**Запросить данные с сервера */
-	getInitialCards() {
-		return fetch(`${this._url}/cards`, {
-			method: "GET",
-			headers: this._headers,
-		})
-		.then(res => this._checkResponse(res))
-	}
-	
-	  /**Функция добавления новой карточки на сервер */
-	addNewCard(data) {
-		return fetch(`${this._url}/cards`, {
-			method: 'POST',
-			headers: this._headers,
-			body: JSON.stringify({
-				name: data.name,
-				link: data.link,
-			}),
-		})
-		.then(res => this._checkResponse(res))
-	};
-	
-	/**Функция получения данных пользователя с сервера*/
-	getUserInfo() {
-		return fetch(`${this._url}/users/me`, {
-			headers: this._headers,
-		})
-		.then(res => this._checkResponse(res))
-	}
-	
-	/**Функция передачи данных пользователя с сервера */
-	setUserInfo(data) {
-		return fetch(`${this._url}/users/me`, {
-			method: 'PATCH',
-			headers: this._headers,
-			body: JSON.stringify({
-				name: data.name,
-				about: data.about,
-			}),
-		})
-		.then(res => this._checkResponse(res))
-	}
-	
-	/**Функция передачи на сервер нового аватара */
-	setUserAvatar(data) {
-		return fetch(`${this._url}/users/me/avatar`, {
-			method: 'PATCH',
-			headers: this._headers,
-			body: JSON.stringify({
-				avatar: data.avatar,
-			}),
-		})
-		.then(res => this._checkResponse(res))
-	}
-	
-	/**Функция удаления карточки с сервера */
-	deleteCard(cardId) {
-		return fetch(`${this._url}/cards/${cardId}`, {
-			method: 'DELETE',
-			headers: this._headers,
-		})
-		.then(res => this._checkResponse(res))
-	}
-	
-	/**Функция отправки лайка на сервер */
-	putCardLike(cardId) {
-		return fetch(`${this._url}/cards/${cardId}/likes`, {
-			method: 'PUT',
-			headers: this._headers,
-		})
-		.then(res => this._checkResponse(res))
-	}
-	
-	/**Функция удаления лайка с сервера */
-	deleteCardLike(cardId) {
-		return fetch(`${this._url}/cards/${cardId}/likes`, {
-			method: 'DELETE',
-			headers: this._headers,
-		})
-		.then(res => this._checkResponse(res))
-	}
+  constructor(options) {
+    this._url = options.url;
+    this._headers = options.headers;
+  }
+
+  _checkResponse(res) {
+    if (res.ok) {
+      return res.json();
+    }
+    return Promise.reject(`Ошибка: ${res.status}`);
+  }
+
+  _fetch(path, method, data) {
+    let body = data;
+    if ((method === 'PATCH' || method === 'POST') && data) {
+      body = JSON.stringify(data);
+    }
+
+    return fetch(this._url + path, {
+      method,
+      headers: this._headers,
+      body,
+    }).then(this._checkResponse);
+  }
+
+  getUserInfo() {
+    return this._fetch('/users/me', 'GET');
+  }
+
+  setUserInfo(data) {
+    return this._fetch('/users/me', 'PATCH', data);
+  }
+
+  addNewCard(data) {
+    return this._fetch('/cards', 'POST', data);
+  }
+
+  getInitialCards() {
+    return this._fetch('/cards', 'GET');
+  }
+
+  likeCard(id) {
+    return this._fetch(`/cards/likes/${id}`, 'PUT');
+  }
+
+  dislikeCard(id) {
+    return this._fetch(`/cards/likes/${id}`, 'DELETE');
+  }
+
+  changeLikeCardStatus(id, hasLike) {
+    if (!hasLike) {
+      return api.likeCard(id);
+    }
+    return api.dislikeCard(id);
+  }
+
+  deleteCard(id) {
+    return this._fetch(`/cards/${id}`, 'DELETE');
+  }
+
+  setUserAvatar(data) {
+    return this._fetch(`/users/me/avatar`, 'PATCH', data);
+  }
+
+  getAllData() {
+    return Promise.all([this.getUserInfo(), this.getInitialCards()]);
+  }
 }
 
 export const api = new Api({
-  baseUrl: "https://mesto.nomoreparties.co/v1/cohort-63",
+  url: "https://mesto.nomoreparties.co/v1/cohort-63",
   headers: {
     authorization: "a9110206-e08b-4912-9750-2ef951bd76b4",
     "Content-Type": "application/json",

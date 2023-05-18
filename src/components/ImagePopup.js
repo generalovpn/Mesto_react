@@ -5,7 +5,8 @@ function ImagePopup({ card, onClose }) {
     <div className={`popup popup_type_image ${card ? "popup_opened" : ""}`}>
       <figure className="popup__figure">
         <button 
-          className="popup__close" 
+          className="popup__close"
+          aria-label="закрыть"
           onClick={onClose}>
         </button>
         <img 
